@@ -60,6 +60,12 @@ class DataSession(Base):
     chat_history = Column(JSON, nullable=True,
                           comment="JSON array of chat conversation messages")
 
+    # ── Sentiment Analysis ─────────────────────────────────────────────────────
+    sentiment_analysis_results = Column(JSON, nullable=True,
+                                        comment="JSON results from sentiment analysis including distribution and statistics")
+    text_columns_identified = Column(JSON, nullable=True,
+                                     comment="JSON array of text columns identified in the dataset")
+
     # ── Status Tracking ────────────────────────────────────────────────────────
     status = Column(
         String(20),

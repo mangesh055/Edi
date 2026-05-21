@@ -748,6 +748,7 @@ async def clean_dataset(
     session.review_summary = review_summary
     session.status = "under_review"
     await db.flush()
+    await db.commit()
 
     if mongo_db is not None:
         await mongo_db.processing_logs.insert_one(
@@ -1037,6 +1038,7 @@ async def submit_review_feedback(
     session.status = _set_status_for_feedback(session.status, request.approval_status)
 
     await db.flush()
+    await db.commit()
 
     if mongo_db is not None:
         await mongo_db.processing_logs.insert_one(
@@ -1144,6 +1146,7 @@ async def revert_selected_changes(
     session.status = "revised"
 
     await db.flush()
+    await db.commit()
 
     return JSONResponse(
         content=_convert_types({
@@ -1206,6 +1209,7 @@ async def finalize_cleaned_dataset(
     session.status = "approved"
 
     await db.flush()
+    await db.commit()
 
     if mongo_db is not None:
         await mongo_db.processing_logs.insert_one(
@@ -1467,6 +1471,7 @@ async def apply_features_endpoint(
     session.cleaned_cols = int(public_updated.shape[1])
     session.cleaned_health_score = compute_health_score(public_updated)["total"]
     await db.flush()
+    await db.commit()
 
     return JSONResponse(content=_convert_types({
         "success": True,

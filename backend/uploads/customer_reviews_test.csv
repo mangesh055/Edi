@@ -1,0 +1,26 @@
+customer_id,product_name,review_text,rating,purchase_date,reviewer_name
+1,Laptop Pro,"This product is absolutely amazing! Best purchase ever.",5,2026-01-15,John
+2,Laptop Pro,"Terrible quality. Stopped working after one week.",1,2026-01-16,
+3,Mouse Wireless,"Great mouse, very responsive and comfortable to use.",4,2026-01-17,Sarah
+4,Mouse Wireless,,3,2026-01-18,Mike
+5,Keyboard Mechanical,"Love the mechanical switches! Perfect for typing.",5,2026-01-19,
+6,Keyboard Mechanical,"Not worth the price. Keys are too loud.",2,2026-01-20,David
+7,Monitor 4K,"Excellent display quality and color accuracy!",5,2026-01-21,Emma
+8,Monitor 4K,"Arrived with dead pixels. Very disappointed.",1,2026-01-22,
+9,USB Hub,"Works as expected. Nothing special but reliable.",3,2026-01-23,Robert
+10,USB Hub,"Cheap and cheerful! Does the job perfectly.",4,2026-01-24,Lisa
+11,Webcam HD,"Terrible camera. Image quality is very poor.",1,2026-01-25,James
+12,Webcam HD,"Fantastic webcam! Crystal clear video quality.",5,2026-01-26,
+13,Speaker Bluetooth,"Average speaker. Sound is okay but bass is weak.",2,2026-01-27,Patricia
+14,Speaker Bluetooth,"I love this speaker! Amazing sound quality.",5,2026-01-28,
+15,Cable Set,"Broke after two weeks. Poor quality materials.",1,2026-01-29,Charles
+16,Cable Set,"Durable and good value for money.",4,2026-01-30,
+17,Stand Monitor,"Perfect! Helps with ergonomics and reduces neck pain.",5,2026-02-01,Rachel
+18,Stand Monitor,,2,2026-02-02,Daniel
+19,Desk Lamp,"Not bright enough. Disappointed with purchase.",2,2026-02-03,
+20,Desk Lamp,"Excellent lamp! Great design and bright LED.",5,2026-02-04,Jennifer
+21,Chair Office,"Uncomfortable after sitting for 2 hours.",1,2026-02-05,Mark
+22,Chair Office,"Very comfortable! Best office chair I ever had.",5,2026-02-06,
+23,Desk Pad,"Good quality mouse pad. Prevents slipping.",4,2026-02-07,
+24,Desk Pad,"Terrible! Fell apart after one month.",1,2026-02-08,Sandra
+25,Screen Protector,"Works perfectly. Keeps screen safe from scratches.",5,2026-02-09,

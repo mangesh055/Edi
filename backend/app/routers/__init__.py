@@ -9,8 +9,9 @@ Routers:
   - cleaning      : Phase 2 — automated cleaning pipeline
   - visualization : Phase 3 — chart & insight generation
   - chatbot       : Phase 4 — agentic AI chatbot
+  - sentiment     : Phase 5 — sentiment analysis on text columns
 """
 
-from app.routers import upload, cleaning, visualization, chatbot
+from app.routers import upload, cleaning, visualization, chatbot, sentiment
 
-__all__ = ["upload", "cleaning", "visualization", "chatbot"]
+__all__ = ["upload", "cleaning", "visualization", "chatbot", "sentiment"]

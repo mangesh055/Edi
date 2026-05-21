@@ -323,5 +323,41 @@ export const applyFeatures = async (sessionId, selectedFeatures) => {
   return response.data;
 };
 
+/**
+ * Sentiment Analysis: get identified text columns for sentiment analysis.
+ */
+export const getTextColumns = async (sessionId) => {
+  const response = await api.get(`/api/sentiment/text-columns/${sessionId}`);
+  return response.data;
+};
+
+/**
+ * Sentiment Analysis: analyze sentiment for specified text columns.
+ */
+export const analyzeSentiment = async (sessionId, columns = null) => {
+  const response = await api.post(`/api/sentiment/analyze`, {
+    session_id: sessionId,
+    columns: columns,
+  });
+  return response.data;
+};
+
+/**
+ * Sentiment Analysis: get sentiment summary for a session or specific column.
+ */
+export const getSentimentSummary = async (sessionId, columnName = null) => {
+  const params = columnName ? { column_name: columnName } : {};
+  const response = await api.get(`/api/sentiment/summary/${sessionId}`, { params });
+  return response.data;
+};
+
+/**
+ * Sentiment Analysis: analyze sentiment for a single text string.
+ */
+export const analyzeSingleText = async (text) => {
+  const response = await api.post(`/api/sentiment/single`, { text });
+  return response.data;
+};
+
 export default api;
-
+

@@ -92,6 +92,8 @@ def _ensure_data_session_columns(sync_conn):
         "review_summary": "JSON",
         "chatbot_working_file_path": "TEXT",
         "chat_history": "JSON",
+        "sentiment_analysis_results": "JSON",
+        "text_columns_identified": "JSON",
     }
 
     for col_name, col_type in additions.items():

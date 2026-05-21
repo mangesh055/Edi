@@ -4,7 +4,6 @@ StatsFlow — FastAPI Application Entry Point
 Run with:
     uvicorn main:app --reload --host 0.0.0.0 --port 8000
 """
-#// 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
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -13,7 +12,7 @@ import os
 
 from app.config import settings
 from app.database import create_tables, connect_mongo, disconnect_mongo
-from app.routers import upload, cleaning, visualization, chatbot
+from app.routers import upload, cleaning, visualization, chatbot, sentiment
 
 # ── Logging ───────────────────────────────────────────────────────
 logging.basicConfig(
@@ -78,6 +77,7 @@ app.include_router(upload.router)
 app.include_router(cleaning.router)
 app.include_router(visualization.router)
 app.include_router(chatbot.router)
+app.include_router(sentiment.router)
 
 
 # ── Health Checks ─────────────────────────────────────────────────

@@ -24,6 +24,7 @@ import HealthScoreCard from './HealthScoreCard';
 import DataTable from './DataTable';
 import DataViewerModal from '../Chatbot/DataViewerModal';
 import FeatureEngineering from './FeatureEngineering';
+import SentimentInsights from './SentimentInsights';
 import './Dashboard.css';
 
 const MISSING_STRATEGIES = [
@@ -486,6 +487,7 @@ function Dashboard() {
         <button className={`tab-btn ${activeTab === 'raw_overview' ? 'active' : ''}`} onClick={() => setActiveTab('raw_overview')}>Raw Data Overview</button>
         <button className={`tab-btn ${activeTab === 'cleaning_process' ? 'active' : ''}`} onClick={() => setActiveTab('cleaning_process')}>Data Cleaning Process</button>
         {hasCleaned && <button className={`tab-btn ${activeTab === 'feature_engineering' ? 'active' : ''}`} onClick={() => setActiveTab('feature_engineering')}>🧬 Feature Engineering</button>}
+        {hasCleaned && <button className={`tab-btn ${activeTab === 'sentiment_analysis' ? 'active' : ''}`} onClick={() => setActiveTab('sentiment_analysis')}>🎭 Sentiment Analysis</button>}
         {hasCleaned && <button className={`tab-btn ${activeTab === 'validation_monitoring' ? 'active' : ''}`} onClick={() => setActiveTab('validation_monitoring')}>Data Validation & Monitoring</button>}
         {hasCleaned && <button className={`tab-btn ${activeTab === 'final_output' ? 'active' : ''}`} onClick={() => setActiveTab('final_output')}>Final Output</button>}
       </div>
@@ -671,6 +673,16 @@ function Dashboard() {
                     cleanedShape: data.new_shape || cleanedShape,
                   });
                 }}
+              />
+            </div>
+          )}
+
+          {/* ================= SENTIMENT ANALYSIS ================= */}
+          {activeTab === 'sentiment_analysis' && hasCleaned && (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <SentimentInsights
+                sessionId={sessionId}
+                cleanedData={cleanedPreview}
               />
             </div>
           )}

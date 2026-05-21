@@ -11,6 +11,10 @@ scikit-learn==1.6.1
 openpyxl==3.1.2
 scipy==1.15.3
 
+# Sentiment Analysis
+textblob==0.17.1
+nltk==3.8.1
+
 # SQLite/PostgreSQL async drivers
 sqlalchemy==2.0.36
 aiosqlite==0.20.0
