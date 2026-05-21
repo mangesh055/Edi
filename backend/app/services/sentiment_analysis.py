@@ -165,33 +165,64 @@ class SentimentAnalyzer:
     def identify_text_columns(self, df: pd.DataFrame) -> List[str]:
         """
         Identify columns that contain text data suitable for sentiment analysis.
-        
-        Args:
-            df: DataFrame to analyze
-            
-        Returns:
-            List of column names that are text columns
+        Uses both dtype heuristics AND column-name keywords for robust detection.
         """
+        TEXT_NAME_KEYWORDS = {
+            'review', 'comment', 'feedback', 'text', 'description', 'message',
+            'note', 'opinion', 'remark', 'response', 'answer', 'content',
+            'summary', 'title', 'subject', 'body', 'narrative', 'testimonial',
+            'complaint', 'suggestion', 'reason', 'detail', 'tweet', 'post',
+        }
+
         text_columns = []
-        
+
         for col in df.columns:
-            # Skip if column is numeric or datetime
+            col_lower = col.lower().strip()
+
+            # Skip obviously numeric / datetime types
             if pd.api.types.is_numeric_dtype(df[col]):
                 continue
             if pd.api.types.is_datetime64_any_dtype(df[col]):
                 continue
-            
-            # Check if column contains text
-            if df[col].dtype == 'object':
-                # Sample some non-null values to verify it's text
-                sample = df[col].dropna().head(10)
-                if len(sample) > 0 and all(isinstance(x, str) for x in sample):
-                    # Check average text length (should be > 5 chars for real text)
-                    avg_length = sample.str.len().mean()
-                    if avg_length > 5:
+
+            # --- Heuristic 1: column name contains a text-related keyword ---
+            if any(kw in col_lower for kw in TEXT_NAME_KEYWORDS):
+                # Still verify it has at least some non-null string content
+                non_null = df[col].dropna()
+                if len(non_null) > 0:
+                    # Cast to str to handle any mixed-type remnants from CSV reading
+                    str_vals = non_null.astype(str)
+                    str_vals = str_vals[str_vals.str.strip() != '']
+                    if len(str_vals) > 0 and str_vals.str.len().mean() > 2:
                         text_columns.append(col)
-        
+                        continue
+
+            # --- Heuristic 2: object dtype with substantial string content ---
+            if df[col].dtype == object:
+                non_null = df[col].dropna()
+                if len(non_null) == 0:
+                    continue
+
+                # Sample up to 20 rows; cast to str to handle mixed types safely
+                sample = non_null.head(20).astype(str)
+                sample = sample[sample.str.strip() != '']
+
+                if len(sample) == 0:
+                    continue
+
+                avg_length = sample.str.len().mean()
+
+                # Require average length > 3 chars (catches even short reviews)
+                # And that the column has enough non-null rows (>= 20% of df)
+                non_null_ratio = len(non_null) / max(len(df), 1)
+                if avg_length > 3 and non_null_ratio >= 0.2:
+                    # Extra gate: at least 5 chars on average in first sample
+                    if avg_length >= 5:
+                        text_columns.append(col)
+
         return text_columns
+
+
 
 
 def analyze_sentiment_in_dataframe(df: pd.DataFrame, columns: List[str] = None) -> Tuple[pd.DataFrame, Dict[str, Any]]:

@@ -1,0 +1,51 @@
+__sf_row_id,review_id,customer_name,purchase_date,product_category,rating,review_text,true_sentiment,review_text_sentiment,review_text_confidence,review_text_polarity,review_text_subjectivity
+0,REV-001,Rachel Green,2026-04-20,Software,1,total scam do not buy!!!!,Negative,negative,0.549,0.0,0.75
+1,REV-002,Michael Scott,2026-05-01,Home,1,Color doesn't match the picture AT ALL. 😠,Negative,neutral,1.0,0.0,0.0
+2,REV-003,Rachel Green,2026-03-07,Clothing,1,The sizing is WAY off. It's like it was made for a doll.,Negative,positive,0.185,0.0,0.0
+3,REV-004,Tina Belcher,2026-02-18,Home,5,Looks beautiful in my living room.,Positive,positive,0.438,0.85,1.0
+4,REV-005,Steve Harrington,2026-04-02,Clothing,5,Fits perfectly and the material is superb.,Positive,positive,0.624,1.0,1.0
+5,REV-006,Charlie Brown,2026-05-10,Home,3,"It is exactly what it claims to be, nothing more, nothing less.",Neutral,neutral,1.0,0.1944,0.2722
+6,REV-007,Hannah Abbott,2026-03-08,Home,1,I wouldn't recommend this to my worst enemy.,Negative,negative,0.708,-1.0,1.0
+7,REV-008,Charlie Brown,2026-03-23,Books,5,A masterpiece of a novel. Highly recommend.,Positive,positive,0.821,0.16,0.54
+8,REV-009,Diana Prince,2026-02-13,Books,1,Literally unreadable. The translation is atrocious.,Negative,neutral,1.0,-0.7,1.0
+9,REV-010,Ian Malcolm,2026-01-25,Books,5,"Perfectly packaged, arrived pristine.",Positive,positive,0.583,1.0,1.0
+10,REV-011,Laura Palmer,2026-04-10,Home,2,Looks cheap in person.,Negative,neutral,1.0,0.4,0.7
+11,REV-012,Laura Palmer,2026-02-20,Books,2,Boring plot and flat characters.,Negative,negative,0.365,-0.5125,0.5625
+12,REV-013,George Costanza,2025-12-01,Electronics,4,gr8 piece of kit. does the job perfectly.,Positive,positive,0.568,1.0,1.0
+13,REV-014,Ian Malcolm,2025-11-23,Books,4,"Good book, couldn't put it down.",Positive,positive,0.367,0.2722,0.4444
+14,REV-015,Charlie Brown,2025-12-17,Software,3,Great features but the UI is confusing.,Neutral,positive,0.258,0.25,0.575
+15,REV-016,Fiona Gallagher,2026-01-05,Clothing,3,"Not bad, but I've had better.",Neutral,positive,0.591,0.425,0.5833
+16,REV-017,Hannah Abbott,2026-04-10,Home,4,Solid product. No complaints.,Positive,negative,0.653,0.0,0.1
+17,REV-018,Oscar Martinez,2026-02-13,Clothing,1,Arrived damaged and smelled weird.,Negative,negative,0.605,-0.5,1.0
+18,REV-019,Ian Malcolm,2025-12-09,Home,3,The delivery was late but the product is amazing.,Neutral,positive,0.394,0.15,0.75
+19,REV-020,Rachel Green,2026-03-26,Electronics,5,Absolutely love this! Best purchase I've made this year. 😊,Positive,positive,0.591,0.8125,0.45
+20,REV-021,Kevin Scott,2026-05-07,Clothing,3,The shirt is nice but it shrunk in the wash.,Neutral,positive,0.174,0.6,1.0
+21,REV-022,Hannah Abbott,2026-05-13,Home,1,What a waste of money. Completely useless.,Negative,negative,0.596,-0.35,0.1
+22,REV-023,Kevin Scott,2026-02-08,Software,2,"Oh great, another update that changes where all the buttons are. Just what I needed.",Negative,positive,0.24,0.8,0.75
+23,REV-024,Ian Malcolm,2026-05-05,Software,3,"The manual is in another language, but I figured it out eventually.",Neutral,neutral,1.0,0.0,0.0
+24,REV-025,George Costanza,2025-12-27,Electronics,3,"I mean, for $10 what did you expect?",Neutral,neutral,1.0,-0.3125,0.6875
+25,REV-026,Kevin Scott,2026-03-28,Software,1,Keeps freezing my computer.,Negative,negative,0.318,0.0,0.0
+26,REV-027,Pam Beesly,2026-02-09,Clothing,2,The zipper got stuck on the first day.,Negative,negative,0.222,0.25,0.3333
+27,REV-028,Oscar Martinez,2026-04-15,Software,1,Buggy mess. Crashes every time I try to save.,Negative,positive,0.274,-0.175,0.175
+28,REV-029,Ian Malcolm,2026-04-16,Electronics,1,Horrible customer support. They never replied.,Negative,negative,0.343,-1.0,1.0
+29,REV-030,Hannah Abbott,2025-12-29,Books,3,Average read. Good for a plane ride.,Neutral,positive,0.367,0.275,0.5
+30,REV-031,Rachel Green,2026-03-15,Clothing,3,It's fine. 🤷‍♂️,Neutral,positive,0.474,0.4167,0.5
+31,REV-032,Steve Harrington,2026-02-01,Books,3,"It's okay, nothing special.",Neutral,negative,0.367,0.4286,0.5357
+32,REV-033,Steve Harrington,2026-02-08,Electronics,1,Battery life is a joke. Lasts maybe an hour.,Negative,positive,0.239,0.0,0.0
+33,REV-034,Laura Palmer,2026-03-26,Electronics,3,"Customer service resolved the issue, but it was a hassle.",Neutral,positive,0.144,0.0,0.0
+34,REV-035,Evan Davis,2026-01-11,Clothing,5,So soft and cozy! Will buy again.,Positive,neutral,1.0,-0.075,0.55
+35,REV-036,Pam Beesly,2026-04-28,Clothing,3,"Decent quality, shipping took 3 weeks tho.",Neutral,neutral,1.0,0.1667,0.6667
+36,REV-037,Bob Jones,2026-04-23,Home,3,"Part of it was broken, but I glued it back together. Looks okay now.",Neutral,positive,0.153,0.0333,0.3
+37,REV-038,Evan Davis,2025-12-12,Software,5,The software is so intuitive. Saved me hours of work.,Positive,positive,0.255,0.0,0.0
+38,REV-039,Fiona Gallagher,2025-11-28,Electronics,1,Overpriced garbage.,Negative,neutral,1.0,0.0,0.0
+39,REV-040,Nina Simone,2025-12-20,Electronics,3,"Does the job, but feels a bit flimsy.",Neutral,neutral,1.0,0.0,0.0
+40,REV-041,Charlie Brown,2026-02-12,Electronics,5,Works exactly as described. Worth every penny.,Positive,positive,0.241,0.275,0.175
+41,REV-042,Michael Scott,2025-12-20,Electronics,2,"Yeah sure, it's a 'smart' device. So smart it ignores my commands.",Negative,positive,0.445,0.3095,0.7249
+42,REV-043,Oscar Martinez,2026-01-06,Home,5,Amazing customer service and fantastic product!!,Positive,positive,0.666,0.6125,0.9
+43,REV-044,Ian Malcolm,2025-12-31,Clothing,5,my new favorite sweater tbh 🔥🔥,Positive,positive,0.375,0.3182,0.7273
+44,REV-045,Alice Smith,2025-11-28,Software,5,The new update made it even better.,Positive,positive,0.326,0.3182,0.4773
+45,REV-046,Diana Prince,2025-11-28,Home,4,Excellent value for the price.,Positive,positive,0.67,1.0,1.0
+46,REV-047,Rachel Green,2026-03-14,Electronics,1,Terrible. Broke after 2 days of use.,Negative,negative,0.596,-1.0,1.0
+47,REV-048,Kevin Scott,2026-04-23,Clothing,5,Great quality and fast shipping.,Positive,positive,0.506,0.5,0.675
+48,REV-049,Julia Child,2026-01-30,Software,5,I was skeptical but it actually exceeded my expectations.,Positive,negative,0.191,-0.25,0.3
+49,REV-050,Fiona Gallagher,2026-01-25,Home,3,Meh. It works I guess.,Neutral,negative,0.302,0.0,0.0
