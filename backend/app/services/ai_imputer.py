@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 from app.config import settings
+from app.services.web_scraper import perform_web_search
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +142,7 @@ COLUMN TO IMPUTE: '{col}'
 DATA TYPE: {type_hint}
 
 For each row below, predict the most plausible value for '{col}' using the other column values and your domain knowledge.
+Where available, we have also provided "web_search_context" containing real-world facts from the internet to help you find the exact missing text!
 
 ROWS WITH MISSING '{col}' (JSON):
 {json.dumps(batch_rows, indent=2, default=str)}
@@ -280,6 +282,15 @@ async def impute_missing_with_ai(df: pd.DataFrame) -> pd.DataFrame:
                 elif isinstance(val, np.floating):
                     val = round(float(val), 4)
                 ctx[c] = val
+            # If this is a categorical/text column, do a quick web search to help the LLM!
+            if stats.get("type") == "categorical":
+                # Create a simple query from the row's context
+                search_query = f"{col} " + " ".join(str(v) for v in ctx.values())[:50]
+                # Run the search asynchronously to avoid blocking
+                search_result = await asyncio.to_thread(perform_web_search, search_query)
+                if search_result:
+                    ctx["web_search_context"] = search_result
+
             batch_rows.append({"row_index": int(idx), "other_column_values": ctx})
 
         # Send to LLM in batches of 10

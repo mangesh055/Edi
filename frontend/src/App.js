@@ -17,6 +17,7 @@ import VisualizationPage from './components/Visualizations/VisualizationPage';
 import ChatbotPage from './components/Chatbot/ChatbotPage';
 import AuthPage from './components/Auth/AuthPage';
 import ProfilePage from './components/Auth/ProfilePage';
+import NotebookPage from './components/Notebook/NotebookPage';
 
 
 
@@ -87,6 +88,7 @@ function App() {
           {/* Authentication & Profile */}
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/notebook" element={<NotebookPage />} />
 
 
 

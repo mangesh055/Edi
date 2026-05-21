@@ -220,6 +220,65 @@ export const getVisualizations = async (sessionId) => {
   return response.data;
 };
 
+/**
+ * Text-to-Dashboard Dynamic Generation
+ */
+export const generateAiDashboard = async (sessionId, prompt) => {
+  const response = await api.post(`/api/dashboard-ai/generate`, {
+    session_id: sessionId,
+    prompt: prompt,
+  });
+  return response.data;
+};
+
+export const refreshAiDashboard = async (sessionId, charts) => {
+  const response = await api.post(`/api/dashboard-ai/refresh`, {
+    session_id: sessionId,
+    charts: charts,
+  });
+  return response.data;
+};
+
+/**
+ * Phase 3: Predictive Sandbox (Causal AI)
+ */
+export const getSandboxFeatures = async (sessionId) => {
+  const response = await api.get(`/api/sandbox/${sessionId}/features`);
+  return response.data;
+};
+
+export const trainSandbox = async (sessionId, targetColumn, modelType = "random_forest") => {
+  const response = await api.post(`/api/sandbox/${sessionId}/train`, {
+    target_column: targetColumn,
+    model_type: modelType
+  });
+  return response.data;
+};
+
+export const predictSandbox = async (sessionId, features) => {
+  const response = await api.post(`/api/sandbox/${sessionId}/predict`, {
+    features: features,
+  });
+  return response.data;
+};
+
+export const executePythonCode = async (sessionId, code) => {
+  const response = await api.post(`/api/python-runner/execute`, {
+    session_id: sessionId,
+    code: code,
+  });
+  return response.data;
+};
+
+export const generateCopilotCode = async (sessionId, prompt, currentCode) => {
+  const response = await api.post(`/api/python-runner/copilot`, {
+    session_id: sessionId,
+    prompt: prompt,
+    current_code: currentCode
+  });
+  return response.data;
+};
+
 
 /**
  * Phase 4: Send a chat message to the AI chatbot.

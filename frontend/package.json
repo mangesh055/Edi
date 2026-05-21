@@ -4,6 +4,7 @@
   "private": true,
   "description": "StatsFlow: AI-Enabled Data Processing Platform",
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.106.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -14,7 +15,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
+    "react-grid-layout": "^2.2.3",
     "react-hot-toast": "^2.4.1",
+    "react-resizable": "^4.0.1",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
     "recharts": "^2.10.1",

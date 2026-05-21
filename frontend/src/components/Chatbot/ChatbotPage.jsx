@@ -30,6 +30,11 @@ function ChatbotPage() {
   const [showDataViewer, setShowDataViewer] = useState(false);
   const [showDataPanel, setShowDataPanel] = useState(true);
   
+  // Resizer state
+  const [panelWidth, setPanelWidth] = useState(440);
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef(null);
+  
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -39,6 +44,44 @@ function ChatbotPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Resizer logic
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing || !containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      // Distance from the right edge of the screen
+      let newWidth = containerRect.right - e.clientX;
+      
+      // Constrain between 300px and 800px
+      if (newWidth < 300) newWidth = 300;
+      if (newWidth > 800) newWidth = 800;
+      
+      setPanelWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+  }, [isResizing]);
 
   // Load chat history on mount
   useEffect(() => {
@@ -270,7 +313,7 @@ function ChatbotPage() {
           <span className="badge badge-success">Context-Aware</span>
         </div>
 
-        <div className="chat-main-body">
+        <div className="chat-main-body" ref={containerRef}>
           <div className="chat-conversation-column">
             {/* Messages */}
             <div className="chat-messages">
@@ -359,7 +402,33 @@ function ChatbotPage() {
             </button>
           )}
 
-          <div className={`chat-manipulation-panel ${showDataPanel ? '' : 'chat-panel-hidden'}`}>
+          {showDataPanel && (
+            <div 
+              onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+              style={{
+                width: '16px',
+                cursor: 'col-resize',
+                backgroundColor: isResizing ? '#3b82f6' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+                transition: 'background-color 0.2s',
+                flexShrink: 0,
+                borderLeft: '1px solid var(--color-border)',
+                borderRight: '1px solid var(--color-border)',
+                background: 'var(--color-bg-card)'
+              }}
+              title="Drag to resize panel"
+            >
+              <div style={{ width: '4px', height: '40px', backgroundColor: isResizing ? '#fff' : '#cbd5e1', borderRadius: '2px' }} />
+            </div>
+          )}
+
+          <div 
+            className={`chat-manipulation-panel ${showDataPanel ? '' : 'chat-panel-hidden'}`} 
+            style={{ width: showDataPanel ? `${panelWidth}px` : '0px', transition: isResizing ? 'none' : 'width 0.2s ease', borderLeft: 'none' }}
+          >
             <div className="chat-manipulation-header">
               <h3>Dataset Manipulation View</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

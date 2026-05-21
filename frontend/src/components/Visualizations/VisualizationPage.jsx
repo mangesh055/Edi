@@ -15,10 +15,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useData } from '../../context/DataContext';
-import { getVisualizations } from '../../api/api';
+import { getVisualizations, generateAiDashboard, refreshAiDashboard } from '../../api/api';
 import ChartRenderer from './ChartRenderer';
 import InsightCard from './InsightCard';
 import InsertChartModal from './InsertChartModal';
+import PredictiveSandbox from './PredictiveSandbox';
+import PowerBIDashboard from './PowerBIDashboard';
 import './Visualizations.css';
 
 const THEME_PRESETS = {
@@ -64,6 +66,9 @@ function VisualizationPage() {
   const [titleOverrides, setTitleOverrides] = useState({});
   const [customCharts, setCustomCharts]     = useState([]);
   const [showInsertModal, setShowInsertModal] = useState(false);
+  const [aiDashboardPrompt, setAiDashboardPrompt] = useState('');
+  const [aiGeneratedCharts, setAiGeneratedCharts] = useState([]);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   // ── Load visualizations (skip if already in context) ────────────
   const loadVisualizations = useCallback(async (force = false) => {
@@ -76,6 +81,23 @@ function VisualizationPage() {
     try {
       const data = await getVisualizations(sessionId);
       setVisualizationData(data);
+      
+      // If there are AI generated charts, refresh their data dynamically
+      if (aiGeneratedCharts.length > 0) {
+        try {
+          const aiRes = await refreshAiDashboard(sessionId, aiGeneratedCharts);
+          if (aiRes.success && aiRes.charts) {
+            setAiGeneratedCharts(aiRes.charts.map((c, i) => ({
+              ...c,
+              id: aiGeneratedCharts[i]?.id || `ai_${Date.now()}_${i}`,
+              custom: true
+            })));
+          }
+        } catch (err) {
+          console.error("Failed to dynamically refresh AI dashboard data:", err);
+        }
+      }
+
       toast.success(
         `Generated ${data.charts.length} charts & ${data.insights.length} insights!`,
         { id: toastId, duration: 5000 }
@@ -98,6 +120,8 @@ function VisualizationPage() {
     { id: 'recommended', label: `⭐ Recommended`, count: recommendedCharts.length },
     { id: 'charts',   label: `📊 Charts`,   count: charts.length },
     { id: 'insights', label: `💡 Insights`, count: insights.length },
+    { id: 'ai_builder', label: `🤖 AI Builder`, count: aiGeneratedCharts.length || null },
+    { id: 'sandbox', label: `🔮 Predictive Sandbox`, count: null },
     { id: 'both',     label: `✨ Both`,     count: null },
   ];
 
@@ -125,7 +149,9 @@ function VisualizationPage() {
   };
 
   const handleDelete = (targetChart) => {
-    if (targetChart.custom) {
+    if (targetChart.id.startsWith('ai_')) {
+      setAiGeneratedCharts(prev => prev.filter(c => c.id !== targetChart.id));
+    } else if (targetChart.custom) {
       setCustomCharts(prev => prev.filter(c => c.id !== targetChart.id));
     } else {
       setVisualizationData({
@@ -203,6 +229,68 @@ function VisualizationPage() {
           </motion.div>
         ))}
       </div>
+    </motion.div>
+  );
+
+  const handleGenerateAiDashboard = async () => {
+    if (!aiDashboardPrompt.trim()) return;
+    setIsGeneratingAi(true);
+    const toastId = toast.loading('🤖 Generating AI dashboard...');
+    try {
+      const res = await generateAiDashboard(sessionId, aiDashboardPrompt);
+      if (res.success && res.charts) {
+        // Map AI charts to standard chart format
+        const parsedCharts = res.charts.map((c, i) => ({
+          ...c, // Spread backend properties including data, x_key, y_key
+          id: `ai_${Date.now()}_${i}`,
+          title: c.title,
+          type: c.type,
+          custom: true
+        }));
+        setAiGeneratedCharts(parsedCharts);
+        toast.success('AI Dashboard Generated!', { id: toastId });
+      } else {
+        throw new Error(res.detail || 'Could not parse charts');
+      }
+    } catch (err) {
+      toast.error('Failed to generate dashboard: ' + (err.message || 'Unknown error'), { id: toastId });
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
+  const renderAiBuilder = () => (
+    <motion.div initial="hidden" animate="visible">
+      <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', marginBottom: '32px' }}>
+        <h3 style={{ margin: '0 0 16px 0', color: '#0f172a' }}>🤖 Text-to-Dashboard</h3>
+        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>Describe the dashboard you want, and our AI BI Developer will build it instantly.</p>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <input 
+            type="text" 
+            placeholder="e.g., Build me a dashboard showing sales trends by region and highlight anomalies." 
+            value={aiDashboardPrompt}
+            onChange={(e) => setAiDashboardPrompt(e.target.value)}
+            style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+            onKeyDown={(e) => e.key === 'Enter' && handleGenerateAiDashboard()}
+          />
+          <button 
+            onClick={handleGenerateAiDashboard} 
+            disabled={isGeneratingAi || !aiDashboardPrompt.trim()}
+            style={{ padding: '12px 24px', borderRadius: '8px', backgroundColor: '#6366f1', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isGeneratingAi ? 0.7 : 1 }}
+          >
+            {isGeneratingAi ? 'Building...' : 'Generate'}
+          </button>
+        </div>
+      </div>
+      
+      {aiGeneratedCharts.length > 0 && (
+        <PowerBIDashboard 
+          charts={aiGeneratedCharts} 
+          chartCustomization={chartCustomization} 
+          handleRename={handleRename} 
+          handleDelete={handleDelete} 
+        />
+      )}
     </motion.div>
   );
 
@@ -449,6 +537,8 @@ function VisualizationPage() {
               {activeTab === 'recommended' && renderRecommendedCharts()}
               {activeTab === 'charts' && renderCharts()}
               {activeTab === 'insights' && renderInsights()}
+              {activeTab === 'ai_builder' && renderAiBuilder()}
+              {activeTab === 'sandbox' && <PredictiveSandbox sessionId={sessionId} />}
               {activeTab === 'both'     && (
                 <div className="viz-content--both">
                   <div>

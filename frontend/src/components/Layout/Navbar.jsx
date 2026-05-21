@@ -17,6 +17,7 @@ const STEPS = [
   { label: 'Clean',      path: '/dashboard', icon: '🧹', minStep: 1 },
   { label: 'Visualize',  path: '/visualize', icon: '📊', minStep: 2 },
   { label: 'Chat',       path: '/chat',      icon: '🤖', minStep: 2 },
+  { label: 'Notebook',   path: '/notebook',  icon: '🐍', minStep: 0 },
 ];
 
 function Navbar() {
