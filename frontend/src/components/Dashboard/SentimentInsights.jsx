@@ -3,6 +3,7 @@
  * ============================
  * Displays sentiment analysis results for text columns in datasets.
  * Shows sentiment distribution (positive/negative/neutral) with confidence scores.
+ * Includes detailed modal view with AI insights for each sentiment category.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,6 +14,7 @@ import {
   getSentimentSummary,
   analyzeSingleText,
 } from '../../api/api';
+import DetailedSentimentModal from './DetailedSentimentModal';
 import './SentimentInsights.css';
 
 function SentimentInsights({ sessionId, isCleaningPhase = true }) {
@@ -25,34 +27,36 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
   const [singleTextInput, setSingleTextInput] = useState('');
   const [singleTextResult, setSingleTextResult] = useState(null);
   const [analyzed, setAnalyzed] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSentimentType, setModalSentimentType] = useState(null);
+  const [modalColumnName, setModalColumnName] = useState(null);
 
   // ─ Load text columns on mount or when sessionId changes ─
   useEffect(() => {
+    const loadTextColumns = async () => {
+      try {
+        setLoading(true);
+        const response = await getTextColumns(sessionId);
+
+        if (response.text_columns && response.text_columns.length > 0) {
+          setTextColumns(response.text_columns);
+          setSelectedColumn(response.text_columns[0]);
+        } else {
+          setTextColumns([]);
+          setSelectedColumn(null);
+        }
+      } catch (error) {
+        console.error('Failed to load text columns:', error);
+        toast.error('Could not identify text columns');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (sessionId) {
       loadTextColumns();
     }
   }, [sessionId]);
-
-  // ─ Load available text columns for analysis ─
-  const loadTextColumns = async () => {
-    try {
-      setLoading(true);
-      const response = await getTextColumns(sessionId);
-
-      if (response.text_columns && response.text_columns.length > 0) {
-        setTextColumns(response.text_columns);
-        setSelectedColumn(response.text_columns[0]);
-      } else {
-        setTextColumns([]);
-        setSelectedColumn(null);
-      }
-    } catch (error) {
-      console.error('Failed to load text columns:', error);
-      toast.error('Could not identify text columns');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ─ Analyze sentiment for selected columns ─
   const handleAnalyzeSentiment = async () => {
@@ -124,8 +128,15 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
     }
   };
 
-  // ─ Render sentiment distribution cards ─
-  const renderDistributionCards = (summary) => {
+  // ─ Handle sentiment card click to open detailed modal ─
+  const handleSentimentCardClick = (sentimentType, columnForModal = null) => {
+    setModalSentimentType(sentimentType);
+    setModalColumnName(columnForModal || selectedColumn);
+    setModalOpen(true);
+  };
+
+  // ─ Render sentiment distribution cards (clickable) ─
+  const renderDistributionCards = (summary, columnForClick = null) => {
     if (!summary || !summary.distribution) return null;
 
     const { distribution, percentages } = summary;
@@ -134,10 +145,16 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
     return (
       <div className="distribution-grid">
         {sentiments.map((sentiment) => (
-          <div key={sentiment} className={`distribution-card ${sentiment}`}>
+          <div
+            key={sentiment}
+            className={`distribution-card ${sentiment} clickable`}
+            onClick={() => handleSentimentCardClick(sentiment, columnForClick)}
+            title={`Click to see ${sentiment} entries`}
+          >
             <div className="label">{sentiment}</div>
             <div className="count">{distribution[sentiment] || 0}</div>
             <div className="percentage">{percentages[sentiment] || 0}%</div>
+            <div className="click-hint">Click for details →</div>
           </div>
         ))}
       </div>
@@ -281,7 +298,7 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
 
             {sentimentSummary && (
               <div>
-                {renderDistributionCards(sentimentSummary)}
+                {renderDistributionCards(sentimentSummary, selectedColumn)}
                 <div className="sentiment-summary-info">
                   <p>
                     <strong>{sentimentSummary.total_analyzed}</strong> text entries analyzed across {selectedColumn || 'multiple columns'}
@@ -296,7 +313,7 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
                 {Object.entries(allColumnSummaries).map(([colName, summary]) => (
                   <div key={colName} style={{ marginBottom: '24px' }}>
                     <h4 style={{ color: '#475569', marginBottom: '10px' }}>📌 {colName}</h4>
-                    {renderDistributionCards(summary)}
+                    {renderDistributionCards(summary, colName)}
                     <div className="sentiment-summary-info">
                       <p>
                         <strong>{summary.total_analyzed}</strong> entries analyzed
@@ -359,6 +376,15 @@ function SentimentInsights({ sessionId, isCleaningPhase = true }) {
         </div>
         {renderSingleTextResult()}
       </div>
+
+      {/* Detailed Sentiment Modal */}
+      <DetailedSentimentModal
+        sessionId={sessionId}
+        columnName={modalColumnName}
+        sentimentType={modalSentimentType}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 }

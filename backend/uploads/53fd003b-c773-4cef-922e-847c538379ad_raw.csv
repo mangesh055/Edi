@@ -1,0 +1,26 @@
+feedback_id,employee_name,department,feedback_text,satisfaction_score,feedback_date
+101,John Smith,Engineering,I really enjoy working here! Great team and supportive management.,5,2026-01-20
+102,Sarah Johnson,Marketing,The workload is overwhelming and management is not supportive.,1,2026-01-21
+103,Mike Davis,Sales,Good work environment. Could improve communication between teams.,3,2026-01-22
+104,Emma Wilson,HR,,4,2026-01-23
+105,Robert Brown,Engineering,Excellent workplace with great benefits and career opportunities.,5,2026-01-24
+106,Lisa Anderson,Finance,Frustrated with outdated systems and lack of training.,2,2026-01-25
+107,James Miller,Operations,Love working here! Amazing colleagues and flexible schedule.,5,2026-01-26
+108,Patricia Lee,Marketing,,1,2026-01-27
+109,Charles Davis,Engineering,The company culture is wonderful and very collaborative.,5,2026-01-28
+110,Rachel White,Sales,Not happy with salary and limited growth opportunities.,1,2026-01-29
+111,Daniel Young,HR,Good balance between work and personal life. Very satisfied.,4,2026-01-30
+112,Jennifer Jones,IT,Terrible management! Poor communication and unfair treatment.,1,2026-02-01
+113,,Finance,Fantastic team and great support from leadership.,5,2026-02-02
+114,Mark Robinson,Engineering,Need more training opportunities and career development.,2,2026-02-03
+115,Sandra Taylor,Marketing,This is the best company to work for! Highly recommend.,5,2026-02-04
+116,Tom Anderson,Sales,Struggling with work-life balance and unrealistic deadlines.,1,2026-02-05
+117,Victoria Brown,Operations,Good company. Nice people and reasonable workload.,4,2026-02-06
+118,,Engineering,Unhappy with recent management changes.,2,2026-02-07
+119,William Lee,HR,Outstanding workplace! Everyone is so helpful and kind.,5,2026-02-08
+120,Zoe Martinez,Finance,,3,2026-02-09
+121,Adam Thompson,Marketing,Very disappointed with lack of recognition and bonuses.,1,2026-02-10
+122,Betty White,Sales,Love the team atmosphere and feeling valued at work.,5,2026-02-11
+123,Christopher Jones,IT,Good technical environment but could improve team dynamics.,3,2026-02-12
+124,,Operations,Best decision joining this company!,5,2026-02-13
+125,Eleanor Davis,Engineering,Frustrated but still hopeful for improvements.,2,2026-02-14

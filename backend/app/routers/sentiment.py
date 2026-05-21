@@ -225,3 +225,113 @@ async def get_sentiment_summary(
     except Exception as e:
         logger.error(f"Error getting sentiment summary: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get summary: {str(e)}")
+
+
+@router.get("/sentiment/detailed/{session_id}", summary="Get detailed sentiment analysis with AI insights")
+async def get_detailed_sentiment_analysis(
+    session_id: str,
+    column_name: str = None,
+    sentiment_type: str = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get detailed flagged rows by sentiment type with AI-generated insights.
+    
+    Args:
+        session_id: The session ID
+        column_name: Text column name to analyze
+        sentiment_type: 'positive', 'negative', or 'neutral'
+        
+    Returns:
+        Detailed rows with AI summary and insights
+    """
+    try:
+        from app.services.sentiment_insights import SentimentInsightsGenerator
+        
+        logger.info(f"Getting detailed sentiment analysis for session {session_id}")
+        logger.info(f"Params: column_name={column_name}, sentiment_type={sentiment_type}")
+        
+        # Fetch session
+        result = await db.execute(
+            select(DataSession).where(DataSession.session_id == session_id)
+        )
+        session = result.scalars().first()
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        if not session.cleaned_file_path:
+            raise HTTPException(status_code=400, detail="No data available for analysis")
+        
+        logger.info(f"Loading data from: {session.cleaned_file_path}")
+        
+        # Load data
+        df = pd.read_csv(session.cleaned_file_path)
+        logger.info(f"Loaded DataFrame with shape: {df.shape}, columns: {df.columns.tolist()}")
+        
+        if not column_name:
+            # Get first text column
+            sentiment_cols = [col for col in df.columns if col.endswith('_sentiment')]
+            logger.info(f"Found sentiment columns: {sentiment_cols}")
+            if not sentiment_cols:
+                raise HTTPException(status_code=404, detail="No sentiment data available")
+            column_name = sentiment_cols[0].replace('_sentiment', '')
+            logger.info(f"Auto-selected column: {column_name}")
+        
+        if sentiment_type not in ['positive', 'negative', 'neutral']:
+            raise HTTPException(status_code=400, detail="Invalid sentiment type")
+        
+        # Extract flagged rows
+        insights_gen = SentimentInsightsGenerator()
+        flagged_rows = insights_gen.extract_flagged_rows(df, column_name, sentiment_type)
+        
+        logger.info(f"Extracted {len(flagged_rows)} rows for sentiment '{sentiment_type}'")
+        
+        if not flagged_rows:
+            return {
+                "status": "success",
+                "session_id": session_id,
+                "column_name": column_name,
+                "sentiment_type": sentiment_type,
+                "count": 0,
+                "rows": [],
+                "summary": "No entries found for this sentiment type.",
+                "insights": {}
+            }
+        
+        # Extract texts for analysis
+        texts = [row['text'] for row in flagged_rows]
+        
+        # Generate AI insights — await the async Groq LLM call properly
+        analysis = await insights_gen.analyze_by_category_async(texts, sentiment_type)
+
+        
+        return {
+            "status": "success",
+            "session_id": session_id,
+            "column_name": column_name,
+            "sentiment_type": sentiment_type,
+            "count": len(flagged_rows),
+            "rows": flagged_rows,
+            # Top-level fields consumed directly by the new modal
+            "domain": analysis.get('domain', ''),
+            "summary": analysis.get('summary', ''),
+            "themes": analysis.get('themes', []),
+            # Negative-specific
+            "problems": analysis.get('problems', []),
+            "workarounds": analysis.get('workarounds', []),
+            "actionable_insights": analysis.get('actionable_insights', []),
+            # Positive-specific
+            "strengths": analysis.get('strengths', []),
+            "why_satisfied": analysis.get('why_satisfied', ''),
+            "standout_quotes": analysis.get('standout_quotes', []),
+            # Neutral-specific
+            "mixed_signals": analysis.get('mixed_signals', []),
+            "opportunities": analysis.get('opportunities', []),
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting detailed sentiment analysis: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Detailed analysis failed: {str(e)}")

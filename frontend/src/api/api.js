@@ -359,5 +359,16 @@ export const analyzeSingleText = async (text) => {
   return response.data;
 };
 
+/**
+ * Sentiment Analysis: get detailed sentiment analysis with AI insights.
+ */
+export const getDetailedSentimentAnalysis = async (sessionId, columnName = null, sentimentType = null) => {
+  const params = {};
+  if (columnName) params.column_name = columnName;
+  if (sentimentType) params.sentiment_type = sentimentType;
+  const response = await api.get(`/api/sentiment/detailed/${sessionId}`, { params });
+  return response.data;
+};
+
 export default api;
 
