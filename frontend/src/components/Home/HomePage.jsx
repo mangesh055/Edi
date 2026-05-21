@@ -5,7 +5,7 @@
  * quick-access features similar to Power BI Desktop.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
@@ -252,7 +252,7 @@ function UploadModal({ onClose, onSuccess }) {
 // ── Main HomePage Component ───────────────────────────────────────────────────
 function HomePage() {
   const navigate = useNavigate();
-  const { setUploadData, setCleaningData, resetAll } = useData();
+  const { setUploadData, setCleaningData } = useData();
 
   const [recentProjects, setRecentProjects] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);

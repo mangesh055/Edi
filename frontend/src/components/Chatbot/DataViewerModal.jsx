@@ -17,7 +17,7 @@ function DataViewerModal({ isOpen, data = [], columns = [], title = 'Data Viewer
   const [sortColumn, setSortColumn] = useState(null);
   const [sortAsce, setSortAsc] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
-  const [columnWidths, setColumnWidths] = useState({});
+  const columnWidths = {}; // Removed unused setColumnWidths state
 
   const ROWS_PER_PAGE = 20;
 

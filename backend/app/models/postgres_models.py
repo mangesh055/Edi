@@ -23,8 +23,11 @@ class DataSession(Base):
 
     # ── Identity ───────────────────────────────────────────────────────────────
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(String(255), index=True, nullable=True,
+                     comment="Supabase Auth UUID of the user who owns this session")
     session_id = Column(String(36), unique=True, index=True, nullable=False,
                         comment="UUID identifying this processing session")
+
 
     # ── File Metadata ──────────────────────────────────────────────────────────
     filename = Column(String(255), nullable=False,

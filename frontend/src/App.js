@@ -15,6 +15,10 @@ import UploadPage from './components/Upload/UploadPage';
 import Dashboard from './components/Dashboard/Dashboard';
 import VisualizationPage from './components/Visualizations/VisualizationPage';
 import ChatbotPage from './components/Chatbot/ChatbotPage';
+import AuthPage from './components/Auth/AuthPage';
+import ProfilePage from './components/Auth/ProfilePage';
+
+
 
 /**
  * Guard component — redirects to the correct step
@@ -79,6 +83,12 @@ function App() {
 
           {/* Phase 1 — Upload (direct URL fallback) */}
           <Route path="/upload" element={<UploadPage />} />
+
+          {/* Authentication & Profile */}
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+
+
 
           {/* Phase 2 — Dashboard & Cleaning */}
           <Route

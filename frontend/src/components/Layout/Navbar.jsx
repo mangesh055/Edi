@@ -8,7 +8,9 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import './Layout.css';
+
 
 const STEPS = [
   { label: 'Upload',     path: '/upload',    icon: '📁', minStep: 0 },
@@ -19,8 +21,17 @@ const STEPS = [
 
 function Navbar() {
   const { currentStep, filename, resetAll, theme, toggleTheme } = useData();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleAuthClick = () => {
+    if (user) {
+      navigate('/profile');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   const handleStepClick = (step) => {
     if (currentStep >= step.minStep) {
@@ -102,6 +113,26 @@ function Navbar() {
             ↺ Reset
           </button>
         )}
+        <button 
+          onClick={handleAuthClick}
+          style={{
+            padding: user ? '6px' : '6px 14px', 
+            borderRadius: user ? '50%' : '8px', 
+            fontSize: '13px', fontWeight: 600,
+            cursor: 'pointer', border: '1px solid #cbd5e1', 
+            backgroundColor: user ? '#e0e7ff' : '#f8fafc',
+            color: user ? '#4f46e5' : '#1e293b', 
+            marginLeft: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            width: user ? '36px' : 'auto', height: user ? '36px' : 'auto'
+          }}
+          title={user ? "My Profile" : "Sign In"}
+        >
+          {user ? (
+            <span style={{ fontSize: '16px' }}>{(user.email?.[0] || 'U').toUpperCase()}</span>
+          ) : (
+            <><span>🔐</span> Sign In</>
+          )}
+        </button>
       </div>
     </nav>
   );

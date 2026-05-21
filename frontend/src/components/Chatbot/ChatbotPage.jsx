@@ -14,14 +14,7 @@ import ChatMessage from './ChatMessage';
 import DataViewerModal from './DataViewerModal';
 import './Chatbot.css';
 
-const SAMPLE_QUESTIONS = [
-  'What are the top 5 insights from this dataset?',
-  'Which columns have the highest correlation?',
-  'What is the average of all numeric columns?',
-  'Drop all rows where the age column is empty',
-  'What is the distribution of the target column?',
-  'Are there any remaining outliers after cleaning?',
-];
+
 
 function ChatbotPage() {
   const { sessionId, messages, addMessage, updateState, cleanedShape, filename } = useData();
