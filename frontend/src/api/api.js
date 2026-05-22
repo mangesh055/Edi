@@ -72,9 +72,12 @@ api.interceptors.response.use(
 /**
  * Phase 1: Upload a raw dataset file.
  */
-export const uploadDataset = async (file, onProgress) => {
+export const uploadDataset = async (file, onProgress, userId) => {
   const formData = new FormData();
   formData.append('file', file);
+  if (userId) {
+    formData.append('user_id', userId);
+  }
 
   const response = await api.post('/api/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -92,10 +95,32 @@ export const uploadDataset = async (file, onProgress) => {
 };
 
 /**
+ * Connect to a Live Database
+ */
+export const connectDatabase = async (connectionString, query, name, userId) => {
+  const response = await api.post('/api/db-connect', {
+    connection_string: connectionString,
+    query: query,
+    name: name,
+    user_id: userId
+  });
+  return response.data;
+};
+
+/**
  * Get session details
  */
 export const getSession = async (sessionId) => {
   const response = await api.get(`/api/session/${sessionId}`);
+  return response.data;
+};
+
+/**
+ * Get recent sessions
+ */
+export const getRecentSessions = async (userId) => {
+  const params = userId ? { user_id: userId } : {};
+  const response = await api.get('/api/sessions/recent', { params });
   return response.data;
 };
 
@@ -270,6 +295,19 @@ export const executePythonCode = async (sessionId, code) => {
   return response.data;
 };
 
+export const saveSandboxCode = async (sessionId, code) => {
+  const response = await api.post(`/api/python-runner/code`, {
+    session_id: sessionId,
+    code: code,
+  });
+  return response.data;
+};
+
+export const getSandboxCode = async (sessionId) => {
+  const response = await api.get(`/api/python-runner/code/${sessionId}`);
+  return response.data;
+};
+
 export const generateCopilotCode = async (sessionId, prompt, currentCode) => {
   const response = await api.post(`/api/python-runner/copilot`, {
     session_id: sessionId,
@@ -299,6 +337,27 @@ export const sendChatMessage = async (sessionId, message, history = [], threadId
  */
 export const getChatHistory = async (sessionId) => {
   const response = await api.get(`/api/chat/${sessionId}/history`);
+  return response.data;
+};
+
+export const getVersions = async (sessionId) => {
+  const response = await api.get(`/api/chat/${sessionId}/versions`);
+  return response.data;
+};
+
+export const rollbackVersion = async (sessionId, filename) => {
+  const response = await api.post(`/api/chat/${sessionId}/rollback`, {
+    filename: filename
+  });
+  return response.data;
+};
+
+export const joinDataset = async (sessionId, file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post(`/api/chat/${sessionId}/join`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 

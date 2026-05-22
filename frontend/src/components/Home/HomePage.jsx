@@ -10,7 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import { useData } from '../../context/DataContext';
-import { uploadDataset, getSession, getReviewState } from '../../api/api';
+import { useAuth } from '../../context/AuthContext';
+import { uploadDataset, getSession, getReviewState, getRecentSessions } from '../../api/api';
 import toast from 'react-hot-toast';
 import './HomePage.css';
 
@@ -20,31 +21,8 @@ const ACCEPTED_TYPES = {
   'application/vnd.ms-excel': ['.xls'],
 };
 const MAX_SIZE_MB = 50;
-const RECENT_KEY = 'statsflow-recent-projects';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-function getRecentProjects() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-    // Sanitize: ensure healthScore is always a number or null (not an object)
-    return raw.map((p) => ({
-      ...p,
-      healthScore: typeof p.healthScore === 'object' && p.healthScore !== null
-        ? p.healthScore?.total ?? null
-        : p.healthScore ?? null,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function saveRecentProject(entry) {
-  const existing = getRecentProjects();
-  const filtered = existing.filter((p) => p.filename !== entry.filename);
-  const updated = [entry, ...filtered].slice(0, 10);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
-}
-
 function formatTimeAgo(isoString) {
   if (!isoString) return '';
   const diff = Date.now() - new Date(isoString).getTime();
@@ -132,6 +110,7 @@ function UploadModal({ onClose, onSuccess }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragError, setDragError] = useState(null);
   const { setUploadData } = useData();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const processFile = useCallback(async (file) => {
@@ -140,21 +119,11 @@ function UploadModal({ onClose, onSuccess }) {
     setDragError(null);
     const toastId = toast.loading(`Uploading ${file.name}...`);
     try {
-      const data = await uploadDataset(file, (pct) => setUploadProgress(pct));
+      const data = await uploadDataset(file, (pct) => setUploadProgress(pct), user ? user.id : null);
       toast.success(
         `✅ Dataset loaded! ${data.shape.rows.toLocaleString()} rows × ${data.shape.columns} columns`,
         { id: toastId, duration: 5000 }
       );
-      saveRecentProject({
-        filename: file.name,
-        rows: data.shape.rows,
-        columns: data.shape.columns,
-        healthScore: typeof data.health_score === 'object'
-          ? data.health_score?.total ?? null
-          : data.health_score ?? null,
-        openedAt: new Date().toISOString(),
-        sessionId: data.session_id,
-      });
       setUploadData(data);
       onClose();
       navigate('/dashboard');
@@ -166,7 +135,7 @@ function UploadModal({ onClose, onSuccess }) {
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [setUploadData, navigate, onClose]);
+  }, [setUploadData, navigate, onClose, user]);
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     if (rejectedFiles.length > 0) {
@@ -253,6 +222,7 @@ function UploadModal({ onClose, onSuccess }) {
 function HomePage() {
   const navigate = useNavigate();
   const { setUploadData, setCleaningData } = useData();
+  const { user } = useAuth();
 
   const [recentProjects, setRecentProjects] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -260,10 +230,16 @@ function HomePage() {
   const [filterQuery, setFilterQuery] = useState('');
   const [greeting, setGreeting] = useState('');
 
-  // Load recent projects from localStorage
+  // Load recent projects from backend
   useEffect(() => {
-    setRecentProjects(getRecentProjects());
-  }, []);
+    getRecentSessions(user ? user.id : null)
+      .then((res) => {
+        if (res && res.success) {
+          setRecentProjects(res.projects || []);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch recent sessions:", err));
+  }, [user]);
 
   // Dynamic greeting
   useEffect(() => {
@@ -276,7 +252,6 @@ function HomePage() {
   const handleRemoveRecent = (filename) => {
     const updated = recentProjects.filter((p) => p.filename !== filename);
     setRecentProjects(updated);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
   };
 
   const handleOpenRecent = async (project) => {
@@ -343,9 +318,9 @@ function HomePage() {
     }
   };
 
-  const filteredProjects = recentProjects.filter((p) =>
-    p.filename?.toLowerCase().includes(filterQuery.toLowerCase())
-  );
+  const filteredProjects = recentProjects.filter((p) => {
+    return p.filename?.toLowerCase().includes(filterQuery.toLowerCase());
+  });
 
   const newProjectOptions = [
     {
@@ -365,19 +340,7 @@ function HomePage() {
       icon: '🗄️',
       label: 'SQL / Database',
       desc: 'Connect data source',
-      onClick: () => toast('Database connection coming soon!', { icon: '🔧' }),
-    },
-    {
-      icon: '☁️',
-      label: 'Cloud Storage',
-      desc: 'Import from cloud',
-      onClick: () => toast('Cloud import coming soon!', { icon: '🔧' }),
-    },
-    {
-      icon: '📋',
-      label: 'Sample Dataset',
-      desc: 'Try with demo data',
-      onClick: () => toast('Sample datasets coming soon!', { icon: '🔧' }),
+      onClick: () => navigate('/upload', { state: { mode: 'db' } }),
     },
   ];
 

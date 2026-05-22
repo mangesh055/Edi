@@ -12,7 +12,7 @@ import os
 
 from app.config import settings
 from app.database import create_tables, connect_mongo, disconnect_mongo
-from app.routers import upload, cleaning, visualization, chatbot, sentiment, dashboard_ai, sandbox, python_runner
+from app.routers import upload, cleaning, visualization, chatbot, sentiment, dashboard_ai, sandbox, python_runner, report
 
 # ── Logging ───────────────────────────────────────────────────────
 logging.basicConfig(
@@ -81,6 +81,7 @@ app.include_router(sentiment.router)
 app.include_router(dashboard_ai.router)
 app.include_router(sandbox.router)
 app.include_router(python_runner.router)
+app.include_router(report.router)
 
 
 # ── Health Checks ─────────────────────────────────────────────────

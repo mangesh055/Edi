@@ -164,3 +164,27 @@ async def generate_copilot_code(req: CopilotRequest, db: AsyncSession = Depends(
         return {"success": True, "code": code.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class SaveCodeRequest(BaseModel):
+    session_id: str
+    code: str
+
+@router.post("/code")
+async def save_sandbox_code(req: SaveCodeRequest, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(DataSession).where(DataSession.session_id == req.session_id))
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session.sandbox_code = req.code
+    await db.commit()
+    return {"success": True}
+
+@router.get("/code/{session_id}")
+async def get_sandbox_code(session_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(DataSession).where(DataSession.session_id == session_id))
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    return {"success": True, "code": session.sandbox_code}

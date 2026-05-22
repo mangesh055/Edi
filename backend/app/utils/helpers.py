@@ -10,7 +10,7 @@ import math
 import pandas as pd
 import numpy as np
 from typing import Any, Dict, List
-from datetime import datetime
+from datetime import datetime, date
 
 
 def generate_session_id() -> str:
@@ -76,7 +76,7 @@ def _convert_types(obj: Any) -> Any:
         return obj.tolist()
     elif isinstance(obj, pd.Timestamp):
         return obj.isoformat()
-    elif isinstance(obj, datetime):
+    elif isinstance(obj, (datetime, date)):
         return obj.isoformat()
     else:
         return obj

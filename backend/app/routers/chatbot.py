@@ -15,12 +15,13 @@ import pandas as pd
 import shutil
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
+import io
 
 from app.database import get_db, get_mongo_db
 from app.models.postgres_models import DataSession
@@ -458,3 +459,93 @@ async def rollback_version(
         raise HTTPException(status_code=500, detail=f"Rollback failed: {exc}")
 
     return JSONResponse(content={"success": True, "message": "Rollback completed.", "session_id": session_id})
+
+@router.post("/chat/{session_id}/join", summary="Upload a secondary dataset and use AI to automatically join it")
+async def join_datasets(
+    session_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(DataSession).where(DataSession.session_id == session_id))
+    session = result.scalar_one_or_none()
+    if not session or not session.cleaned_file_path:
+        raise HTTPException(status_code=404, detail="Active cleaned dataset not found.")
+
+    try:
+        df1 = pd.read_csv(session.cleaned_file_path, low_memory=False)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to load active dataset: {exc}")
+
+    try:
+        content = await file.read()
+        if file.filename.endswith(".csv"):
+            df2 = pd.read_csv(io.BytesIO(content))
+        else:
+            df2 = pd.read_excel(io.BytesIO(content))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Failed to load secondary dataset: {exc}")
+
+    # Use LLM to determine join strategy
+    from app.services.llm_service import call_llm
+    
+    prompt = f"""
+You are an expert Data Engineer. We need to merge two datasets.
+Dataset 1 (Active) Columns: {list(df1.columns)}
+Dataset 2 (New Upload) Columns: {list(df2.columns)}
+
+Dataset 1 Sample (First 3 rows):
+{df1.head(3).to_dict(orient="records")}
+
+Dataset 2 Sample (First 3 rows):
+{df2.head(3).to_dict(orient="records")}
+
+Identify the best columns to join these two datasets on.
+Respond ONLY with a valid JSON object in this exact format, with no markdown formatting or backticks:
+{{"left_on": "column_name_from_dataset_1", "right_on": "column_name_from_dataset_2", "how": "left"}}
+"""
+
+    try:
+        llm_response = await call_llm(
+            messages=[{"role": "user", "content": prompt}],
+            system_prompt="You are a data engineer that outputs only JSON.",
+            temperature=0.0
+        )
+        import json
+        clean_json = llm_response.replace('```json', '').replace('```', '').strip()
+        join_instructions = json.loads(clean_json)
+        
+        left_on = join_instructions.get("left_on")
+        right_on = join_instructions.get("right_on")
+        how = join_instructions.get("how", "left")
+
+        if left_on not in df1.columns or right_on not in df2.columns:
+            raise ValueError(f"Invalid columns identified by AI: {left_on}, {right_on}")
+
+        # Perform the merge
+        merged_df = df1.merge(df2, left_on=left_on, right_on=right_on, how=how)
+
+        # Save to version history before overwriting
+        versions_root = os.path.join(os.path.dirname(session.cleaned_file_path), "versions", session.session_id)
+        Path(versions_root).mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        backup_name = f"{timestamp}.csv"
+        backup_path = os.path.join(versions_root, backup_name)
+        shutil.copy(session.cleaned_file_path, backup_path)
+
+        # Overwrite active dataset
+        merged_df.to_csv(session.cleaned_file_path, index=False)
+        from app.services.cloud_storage import sync_to_cloud
+        sync_to_cloud(session.cleaned_file_path)
+
+        session.cleaned_rows = int(merged_df.shape[0])
+        session.cleaned_cols = int(merged_df.shape[1])
+        await db.commit()
+
+        return JSONResponse(content={
+            "success": True, 
+            "message": f"Successfully joined on {left_on} = {right_on} ({how} join).",
+            "shape": {"rows": session.cleaned_rows, "columns": session.cleaned_cols}
+        })
+
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"AI Join failed: {exc}")

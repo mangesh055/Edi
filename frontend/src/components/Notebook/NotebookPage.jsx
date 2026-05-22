@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
-import { executePythonCode, generateCopilotCode } from '../../api/api';
+import { executePythonCode, generateCopilotCode, saveSandboxCode, getSandboxCode } from '../../api/api';
 import toast from 'react-hot-toast';
 import { useData } from '../../context/DataContext';
 
@@ -44,6 +44,21 @@ import matplotlib.pyplot as plt
     e.preventDefault();
     setIsResizing(true);
   };
+
+  useEffect(() => {
+    const fetchCode = async () => {
+      if (!sessionId) return;
+      try {
+        const res = await getSandboxCode(sessionId);
+        if (res.success && res.code) {
+          setCode(res.code);
+        }
+      } catch (err) {
+        console.error("Failed to load saved notebook code:", err);
+      }
+    };
+    fetchCode();
+  }, [sessionId]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -122,6 +137,27 @@ import matplotlib.pyplot as plt
     }
   };
 
+  const handleSave = async () => {
+    if (!sessionId) {
+      toast.error('No active dataset session to save code to.', { icon: '⚠️' });
+      return;
+    }
+    const tid = toast.loading('Saving code...');
+    try {
+      await saveSandboxCode(sessionId, code);
+      toast.success('Code saved to database!', { id: tid, icon: '💾' });
+    } catch (err) {
+      toast.error('Failed to save code.', { id: tid });
+      console.error(err);
+    }
+  };
+
+  const handleEditorDidMount = (editor, monaco) => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+      handleSave();
+    });
+  };
+
   return (
     <div style={{ padding: '20px', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -133,26 +169,47 @@ import matplotlib.pyplot as plt
             Write and execute Python code instantly. {sessionId ? "Your active dataset is pre-loaded as 'df'." : "No active dataset loaded."}
           </p>
         </div>
-        <button 
-          onClick={handleRun}
-          disabled={isRunning}
-          style={{
-            padding: '10px 24px',
-            backgroundColor: '#10b981',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontWeight: 700,
-            cursor: isRunning ? 'not-allowed' : 'pointer',
-            opacity: isRunning ? 0.7 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
-          }}
-        >
-          {isRunning ? 'Running...' : '▶ Run Code'}
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={handleSave}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: '#3b82f6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.2)'
+            }}
+            title="Save Code (Ctrl+S)"
+          >
+            💾 Save
+          </button>
+          <button 
+            onClick={handleRun}
+            disabled={isRunning}
+            style={{
+              padding: '10px 24px',
+              backgroundColor: '#10b981',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 700,
+              cursor: isRunning ? 'not-allowed' : 'pointer',
+              opacity: isRunning ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
+            }}
+          >
+            {isRunning ? 'Running...' : '▶ Run Code'}
+          </button>
+        </div>
       </div>
 
       <div ref={containerRef} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -185,6 +242,7 @@ import matplotlib.pyplot as plt
               theme="vs-dark"
               value={code}
               onChange={(val) => setCode(val)}
+              onMount={handleEditorDidMount}
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,

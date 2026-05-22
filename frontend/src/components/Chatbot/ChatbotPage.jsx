@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useData } from '../../context/DataContext';
-import { sendChatMessage, downloadCleanedDataset, getChatHistory } from '../../api/api';
+import { sendChatMessage, downloadCleanedDataset, getChatHistory, getVersions, rollbackVersion, joinDataset } from '../../api/api';
 import ChatMessage from './ChatMessage';
 import DataViewerModal from './DataViewerModal';
 import './Chatbot.css';
@@ -30,6 +30,11 @@ function ChatbotPage() {
   const [showDataViewer, setShowDataViewer] = useState(false);
   const [showDataPanel, setShowDataPanel] = useState(true);
   
+  // Version History state
+  const [showVersions, setShowVersions] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [isRollingBack, setIsRollingBack] = useState(false);
+
   // Resizer state
   const [panelWidth, setPanelWidth] = useState(440);
   const [isResizing, setIsResizing] = useState(false);
@@ -37,6 +42,9 @@ function ChatbotPage() {
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const [isJoining, setIsJoining] = useState(false);
 
   const CHAT_TABLE_PAGE_SIZE = 8;
 
@@ -228,6 +236,43 @@ function ChatbotPage() {
     return String(val);
   };
 
+  const handleRollback = async (filename) => {
+    if (!window.confirm("Are you sure you want to rollback to this version? Current unsaved edits will be overwritten.")) return;
+    setIsRollingBack(true);
+    const tid = toast.loading('Time-traveling...');
+    try {
+      const res = await rollbackVersion(sessionId, filename);
+      if (res.success) {
+        toast.success('Successfully rolled back to previous version!', { id: tid });
+        setShowVersions(false);
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (err) {
+      toast.error('Rollback failed.', { id: tid });
+    } finally {
+      setIsRollingBack(false);
+    }
+  };
+
+  const handleJoinUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsJoining(true);
+    const tid = toast.loading('AI is analyzing columns and merging datasets...');
+    try {
+      const res = await joinDataset(sessionId, file);
+      if (res.success) {
+        toast.success(res.message, { id: tid });
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Merge failed', { id: tid });
+    } finally {
+      setIsJoining(false);
+      e.target.value = null;
+    }
+  };
+
   return (
     <div className="chat-page">
       {/* ── Sidebar ─────────────────────────────────────────── */}
@@ -265,6 +310,16 @@ function ChatbotPage() {
             >
               🗂️ Fullscreen
             </button>
+            <button
+              className="chat-action-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isJoining}
+              title="Upload another CSV to automatically merge with the current dataset"
+              style={{ backgroundColor: '#eef2ff', color: '#4f46e5', fontWeight: 600, border: '1px solid #c7d2fe' }}
+            >
+              🔀 {isJoining ? 'Joining...' : 'AI Join'}
+            </button>
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".csv,.xlsx" onChange={handleJoinUpload} />
           </div>
         </div>
 
@@ -430,7 +485,15 @@ function ChatbotPage() {
             style={{ width: showDataPanel ? `${panelWidth}px` : '0px', transition: isResizing ? 'none' : 'width 0.2s ease', borderLeft: 'none' }}
           >
             <div className="chat-manipulation-header">
-              <h3>Dataset Manipulation View</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <h3 style={{ margin: 0 }}>Dataset Manipulation</h3>
+                <button 
+                  onClick={() => setShowVersions(true)}
+                  style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                >
+                  🕒 Version History ({versions.length})
+                </button>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className="badge badge-primary">
                   {manipulatedPreview.length > 0 ? `${manipulatedPreview.length} rows` : 'No edits yet'}
@@ -517,6 +580,51 @@ function ChatbotPage() {
         title={manipulatedPreview.length > 0 ? 'Manipulated Data' : 'Cleaned Data'}
         onClose={() => setShowDataViewer(false)}
       />
+
+      {/* Version History Modal */}
+      {showVersions && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ backgroundColor: '#fff', width: '500px', maxHeight: '80vh', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+              <h3 style={{ margin: 0, color: '#0f172a', fontSize: 16 }}>🕒 Time-Travel (Version History)</h3>
+              <button onClick={() => setShowVersions(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              <p style={{ margin: '0 0 16px 0', fontSize: 13, color: '#64748b' }}>
+                Every time the AI modifies your dataset, a snapshot is saved. You can rollback to any previous snapshot below.
+              </p>
+              {versions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>No versions saved yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {versions.map((v, i) => {
+                    const d = new Date(v.timestamp || Date.now());
+                    return (
+                      <div key={v.filename} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>
+                            {i === 0 ? "Latest Backup" : `Backup #${versions.length - i}`}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                            {d.toLocaleString()} • Action: {v.trigger || 'manual_commit'}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => handleRollback(v.filename)}
+                          disabled={isRollingBack}
+                          style={{ padding: '6px 12px', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Rollback
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ const STEPS = [
 ];
 
 function Navbar() {
-  const { currentStep, filename, resetAll, theme, toggleTheme } = useData();
+  const { currentStep, filename, resetAll, theme, toggleTheme, sessionId } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,9 +110,19 @@ function Navbar() {
           </div>
         )}
         {currentStep > 0 && (
-          <button className="btn btn-secondary navbar-reset-btn" onClick={handleReset}>
-            ↺ Reset
-          </button>
+          <>
+            <button 
+              className="btn btn-secondary navbar-reset-btn" 
+              onClick={() => window.open(`http://localhost:8000/api/report/generate/${sessionId}`, '_blank')}
+              style={{ backgroundColor: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}
+              title="Export Executive Summary (PDF)"
+            >
+              📄 Report
+            </button>
+            <button className="btn btn-secondary navbar-reset-btn" onClick={handleReset}>
+              ↺ Reset
+            </button>
+          </>
         )}
         <button 
           onClick={handleAuthClick}

@@ -1,0 +1,8 @@
+emp_id,name,department_id,salary,join_date,performance_score
+1,Alice Smith,101,85000.0,2021-03-15,8
+2,Bob Johnson,102,62000.0,2022-07-01,7
+3,Charlie Lee,101,95000.0,2020-11-10,9
+4,Diana Prince,103,72000.0,2023-01-20,6
+5,Evan Wright,104,58000.0,2019-05-05,8
+6,Fiona Gallagher,101,105000.0,2018-09-12,10
+7,George Miller,103,68000.0,2022-02-28,7

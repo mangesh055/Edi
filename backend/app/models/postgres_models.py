@@ -77,6 +77,9 @@ class DataSession(Base):
         comment="Session status: uploaded | cleaned | under_review | revised | approved | visualized"
     )
 
+    # ── Sandbox ────────────────────────────────────────────────────────────────
+    sandbox_code = Column(Text, nullable=True, comment="Saved Python sandbox code")
+
     # ── Timestamps ─────────────────────────────────────────────────────────────
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

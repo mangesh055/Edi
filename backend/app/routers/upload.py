@@ -11,8 +11,11 @@ computes the raw Data Health Score, and creates a session record.
 import os
 import math
 import pandas as pd
-from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
+from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Form
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import create_engine
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db, get_mongo_db
@@ -28,6 +31,12 @@ router = APIRouter(prefix="/api", tags=["Upload"])
 logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls"}
+
+class DBConnectRequest(BaseModel):
+    connection_string: str
+    query: str
+    name: str = "database_import"
+    user_id: str = None
 
 
 def _safe_rounded(value, ndigits: int = 4):
@@ -46,6 +55,7 @@ def _safe_rounded(value, ndigits: int = 4):
 @router.post("/upload", summary="Upload raw dataset and receive initial health score")
 async def upload_dataset(
     file: UploadFile = File(..., description="CSV or Excel dataset file"),
+    user_id: str = Form(None, description="Supabase Auth UUID"),
     db: AsyncSession = Depends(get_db),
     mongo_db=Depends(get_mongo_db),
 ):
@@ -143,6 +153,7 @@ async def upload_dataset(
         original_cols=int(df.shape[1]),
         raw_health_score=health["total"],
         status="uploaded",
+        user_id=user_id,
     )
     db.add(session_record)
     await db.flush()
@@ -165,6 +176,104 @@ async def upload_dataset(
         "success": True,
         "session_id": session_id,
         "filename": filename,
+        "shape": {
+            "rows": int(df.shape[0]),
+            "columns": int(df.shape[1]),
+        },
+        "health_score": {
+            **health,
+            "label": score_label,
+        },
+        "quality_scorecard": {
+            "raw": quality_scorecard,
+            "cleaned": None,
+        },
+        "anomaly_report": anomaly_report,
+        "columns_info": columns_info,
+        "data_preview": df_to_json_safe(df, max_rows=500),
+        "column_names": list(df.columns),
+    }
+    return JSONResponse(content=_convert_types(response_payload))
+
+@router.post("/db-connect", summary="Connect to a live database and import data")
+async def db_connect_dataset(
+    request: DBConnectRequest,
+    db: AsyncSession = Depends(get_db),
+    mongo_db=Depends(get_mongo_db),
+):
+    try:
+        conn_str = request.connection_string
+        if conn_str.startswith("mysql://"):
+            conn_str = conn_str.replace("mysql://", "mysql+pymysql://", 1)
+        elif conn_str.startswith("postgres://"):
+            conn_str = conn_str.replace("postgres://", "postgresql://", 1)
+            
+        engine = create_engine(conn_str)
+        df = pd.read_sql(request.query, engine)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Database connection or query failed: {str(exc)}"
+        )
+        
+    if df.empty:
+        raise HTTPException(status_code=422, detail="Query returned no data.")
+
+    session_id = generate_session_id()
+    raw_file_path = os.path.join(settings.upload_dir, f"{session_id}_raw.csv")
+    df.to_csv(raw_file_path, index=False)
+    
+    from app.services.cloud_storage import sync_to_cloud
+    sync_to_cloud(raw_file_path)
+
+    health = compute_health_score(df)
+    quality_scorecard = compute_quality_scorecard(df)
+    anomaly_report = detect_anomalies(raw_df=df, cleaned_df=None)
+    score_label = get_score_label(health["total"])
+
+    column_types = get_column_types(df)
+    columns_info = []
+    for col in df.columns:
+        missing_pct = _safe_rounded(df[col].isnull().mean() * 100, 2)
+        col_info = {
+            "name": col,
+            "type": column_types[col],
+            "dtype": str(df[col].dtype),
+            "missing_count": int(df[col].isnull().sum()),
+            "missing_pct": missing_pct if missing_pct is not None else 0.0,
+            "unique_count": int(df[col].nunique()),
+        }
+        if column_types[col] == "numeric":
+            col_info["mean"] = _safe_rounded(df[col].mean(), 4)
+            col_info["std"] = _safe_rounded(df[col].std(), 4)
+        columns_info.append(col_info)
+
+    session_record = DataSession(
+        session_id=session_id,
+        filename=request.name + ".csv",
+        file_path=raw_file_path,
+        original_rows=int(df.shape[0]),
+        original_cols=int(df.shape[1]),
+        raw_health_score=health["total"],
+        status="uploaded",
+        user_id=request.user_id,
+    )
+    db.add(session_record)
+    await db.flush()
+
+    if mongo_db is not None:
+        await mongo_db.processing_logs.insert_one({
+            "session_id": session_id,
+            "event": "db_import",
+            "filename": request.name,
+            "shape": {"rows": int(df.shape[0]), "cols": int(df.shape[1])},
+            "raw_health_score": health["total"],
+        })
+
+    response_payload = {
+        "success": True,
+        "session_id": session_id,
+        "filename": request.name + ".csv",
         "shape": {
             "rows": int(df.shape[0]),
             "columns": int(df.shape[1]),
@@ -255,3 +364,37 @@ async def get_session(
             logger.error(f"Error reading raw file for session {session_id}: {e}")
 
     return JSONResponse(content=_convert_types(response_payload))
+
+
+@router.get("/sessions/recent", summary="Get recent sessions for a user")
+async def get_recent_sessions(
+    user_id: str = None,
+    db: AsyncSession = Depends(get_db),
+):
+    from sqlalchemy import select, desc
+    from app.models.postgres_models import DataSession
+    
+    query = select(DataSession)
+    if user_id:
+        query = query.where(DataSession.user_id == user_id)
+    else:
+        query = query.where(DataSession.user_id.is_(None))
+        
+    query = query.order_by(desc(DataSession.created_at)).limit(10)
+    
+    result = await db.execute(query)
+    sessions = result.scalars().all()
+    
+    projects = []
+    for s in sessions:
+        projects.append({
+            "filename": s.filename,
+            "rows": s.original_rows,
+            "columns": s.original_cols,
+            "healthScore": s.raw_health_score,
+            "openedAt": s.created_at.isoformat() if s.created_at else None,
+            "sessionId": s.session_id,
+            "userId": s.user_id,
+        })
+        
+    return JSONResponse(content=_convert_types({"success": True, "projects": projects}))
