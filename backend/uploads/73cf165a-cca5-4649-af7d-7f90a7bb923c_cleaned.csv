@@ -1,0 +1,26 @@
+__sf_row_id,feedback_id,employee_name,department,feedback_text,satisfaction_score,feedback_date,satisfaction_score_normalized,satisfaction_score_squared,satisfaction_score_binned_3,satisfaction_score_binned_5,feedback_id_inverse,satisfaction_score_log1p,satisfaction_score_sqrt,feedback_id_sqrt
+0,101,John Smith,Engineering,I really enjoy working here! Great team and supportive management.,5,2026-01-20,1.0854408398254034,25,high,very_high,0.009900990099009901,1.791759469228055,2.23606797749979,10.04987562112089
+1,102,Sarah Johnson,Marketing,The workload is overwhelming and management is not supportive.,1,2026-01-21,-1.32664991534216,1,low,very_low,0.00980392156862745,0.6931471805599453,1.0,10.099504938362077
+2,103,Mike Davis,Sales,Good work environment. Could improve communication between teams.,3,2026-01-22,-0.12060453775837827,9,mid,mid,0.009708737864077669,1.3862943611198906,1.7320508075688772,10.14889156509222
+3,104,Emma Wilson,HR,I really enjoy working here! Great team and supportive management.,4,2026-01-23,0.4824181510335126,16,high,high,0.009615384615384616,1.6094379124341003,2.0,10.198039027185569
+4,105,Robert Brown,Engineering,Excellent workplace with great benefits and career opportunities.,5,2026-01-24,1.0854408398254034,25,high,very_high,0.009523809523809525,1.791759469228055,2.23606797749979,10.246950765959598
+5,106,Lisa Anderson,Finance,Frustrated with outdated systems and lack of training.,2,2026-01-25,-0.7236272265502691,4,low,low,0.009433962264150943,1.0986122886681098,1.4142135623730951,10.295630140987
+6,107,James Miller,Operations,Love working here! Amazing colleagues and flexible schedule.,5,2026-01-26,1.0854408398254034,25,high,very_high,0.009345794392523364,1.791759469228055,2.23606797749979,10.344080432788601
+7,108,Patricia Lee,Marketing,The workload is overwhelming and management is not supportive.,1,2026-01-27,-1.32664991534216,1,low,very_low,0.009259259259259259,0.6931471805599453,1.0,10.392304845413264
+8,109,Charles Davis,Engineering,The company culture is wonderful and very collaborative.,5,2026-01-28,1.0854408398254034,25,high,very_high,0.009174311926605505,1.791759469228055,2.23606797749979,10.44030650891055
+9,110,Rachel White,Sales,Not happy with salary and limited growth opportunities.,1,2026-01-29,-1.32664991534216,1,low,very_low,0.00909090909090909,0.6931471805599453,1.0,10.488088481701515
+10,111,Daniel Young,HR,Good balance between work and personal life. Very satisfied.,4,2026-01-30,0.4824181510335126,16,high,high,0.009009009009009009,1.6094379124341003,2.0,10.535653752852738
+11,112,Jennifer Jones,IT,Terrible management! Poor communication and unfair treatment.,1,2026-02-01,-1.32664991534216,1,low,very_low,0.008928571428571428,0.6931471805599453,1.0,10.583005244258363
+12,113,John Smith,Finance,Fantastic team and great support from leadership.,5,2026-02-02,1.0854408398254034,25,high,very_high,0.008849557522123894,1.791759469228055,2.23606797749979,10.63014581273465
+13,114,Mark Robinson,Engineering,Need more training opportunities and career development.,2,2026-02-03,-0.7236272265502691,4,low,low,0.008771929824561403,1.0986122886681098,1.4142135623730951,10.677078252031311
+14,115,Sandra Taylor,Marketing,This is the best company to work for! Highly recommend.,5,2026-02-04,1.0854408398254034,25,high,very_high,0.008695652173913044,1.791759469228055,2.23606797749979,10.723805294763608
+15,116,Tom Anderson,Sales,Struggling with work-life balance and unrealistic deadlines.,1,2026-02-05,-1.32664991534216,1,low,very_low,0.008620689655172414,0.6931471805599453,1.0,10.770329614269007
+16,117,Victoria Brown,Operations,Good company. Nice people and reasonable workload.,4,2026-02-06,0.4824181510335126,16,high,high,0.008547008547008548,1.6094379124341003,2.0,10.816653826391969
+17,118,John Smith,Engineering,Unhappy with recent management changes.,2,2026-02-07,-0.7236272265502691,4,low,low,0.00847457627118644,1.0986122886681098,1.4142135623730951,10.862780491200215
+18,119,William Lee,HR,Outstanding workplace! Everyone is so helpful and kind.,5,2026-02-08,1.0854408398254034,25,high,very_high,0.008403361344537815,1.791759469228055,2.23606797749979,10.908712114635714
+19,120,Zoe Martinez,Finance,Good balance between work and personal life. Very satisfied.,3,2026-02-09,-0.12060453775837827,9,mid,mid,0.008333333333333333,1.3862943611198906,1.7320508075688772,10.954451150103322
+20,121,Adam Thompson,Marketing,Very disappointed with lack of recognition and bonuses.,1,2026-02-10,-1.32664991534216,1,low,very_low,0.008264462809917356,0.6931471805599453,1.0,11.0
+21,122,Betty White,Sales,Love the team atmosphere and feeling valued at work.,5,2026-02-11,1.0854408398254034,25,high,very_high,0.00819672131147541,1.791759469228055,2.23606797749979,11.045361017187261
+22,123,Christopher Jones,IT,Good technical environment but could improve team dynamics.,3,2026-02-12,-0.12060453775837827,9,mid,mid,0.008130081300813009,1.3862943611198906,1.7320508075688772,11.090536506409418
+23,124,John Smith,Operations,Best decision joining this company!,5,2026-02-13,1.0854408398254034,25,high,very_high,0.008064516129032258,1.791759469228055,2.23606797749979,11.135528725660043
+24,125,Eleanor Davis,Engineering,Frustrated but still hopeful for improvements.,2,2026-02-14,-0.7236272265502691,4,low,low,0.008,1.0986122886681098,1.4142135623730951,11.180339887498949
